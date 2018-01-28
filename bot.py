@@ -1,5 +1,6 @@
 import praw
 from auth import auth as login
+import time
 
 def userFilter(string):
     return string.startswith("/u/")
@@ -18,19 +19,20 @@ scam = list()
 mods = reddit.subreddit("GarlicMarket").moderator()
 
 verifyThread = reddit.submission(id=verifyThreadID);
-verifyThread.comments.replace_more(limit=0)
+verifyThread.comments.replace_more(limit=None)
 for tlc in verifyThread.comments:
+    if (tlc == None) or (tlc.author == None): # Strip Deleted Comments
+        continue
     haveVerified = 0
-    requestedVerify = [i[3:] for i in tlc.body.split(" ") if userFilter(i)]
-    tlc.replies.replace_more(limit=0)
+    requestedVerify = [i[3:].lower().split("\n")[0] for i in tlc.body.split(" ") if userFilter(i)]
+    tlc.replies.replace_more(limit=None)
     for reply in tlc.replies:
-        try:
-            if reply.author.name in requestedVerify:
-                haveVerified += 1;
-                requestedVerify.remove(reply.author.name)
-        except Exception as e:
-            print(e)
-            print(reply)
+        if (reply == None) or (reply.author == None): # Strip Deleted Comments
+            continue
+        if reply.author.name.lower() in requestedVerify:
+            haveVerified += 1;
+            requestedVerify.remove(reply.author.name.lower())
+    print(tlc.author.name + "(" + str(tlc) + ") is lacking verification from " + str(requestedVerify))
     verified.append((tlc.author, haveVerified))
 
 print([i for i in verified if (i[1] > 0)])
