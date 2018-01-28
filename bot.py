@@ -29,10 +29,15 @@ for tlc in verifyThread.comments:
     for reply in tlc.replies:
         if (reply == None) or (reply.author == None): # Strip Deleted Comments
             continue
-        if reply.author.name.lower() in requestedVerify:
+        while reply.author.name.lower() in requestedVerify:
             haveVerified += 1;
             requestedVerify.remove(reply.author.name.lower())
     print(tlc.author.name + "(" + str(tlc) + ") is lacking verification from " + str(requestedVerify))
     verified.append((tlc.author, haveVerified))
 
 print([i for i in verified if (i[1] > 0)])
+
+USL = reddit.subreddit("UniversalScammerList").wiki['banlist']
+scam.extend([i[3:].lower().split("\n")[0] for i in USL.content_md.split(" ") if userFilter(i)])
+
+print(scam)
